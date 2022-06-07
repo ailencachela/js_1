@@ -16,11 +16,11 @@ alert("El valor total de la compra: $" + valorCompraTotal)
 
 for (i = 1; i <= cuotas; i++) {  
     if (i === 1) {
-        alert("Empezaste a pagar las cuotas!")
+        alert("¡Empezaste a pagar las cuotas!")
     }  
     alert("El valor de la cuota " + i + " es $" + valorCuotaTotal)
     if (i === cuotas) {
-        alert("Ya pagaste todas las cuotas! ")
+        alert("¡Ya pagaste todas las cuotas! ")
     }
 }
 
