@@ -1,0 +1,38 @@
+[
+    {
+        "id": "cepillo",
+        "name": "Cepillo",
+        "price": 400,
+        "image": "./img/cepillo.jpg"
+    },
+    {
+        "id": "desodorante",
+        "name": "Desodorante",
+        "price": 400,
+        "image": "./img/desodorante.jpg"
+    },
+    {
+        "id": "jabon",
+        "name": "Jabón",
+        "price": 400,
+        "image": "./img/jabon.jpg"
+    },
+    {
+        "id": "shampoo",
+        "name": "Shampoo",
+        "price": 400,
+        "image": "./img/shampoo.jpg"
+    },
+    {
+        "id": "combo1",
+        "name": "Combo 1",
+        "price": 400,
+        "image": "./img/combo1.jpg"
+    },
+    {
+        "id": "combo2",
+        "name": "Combo 2",
+        "price": 400,
+        "image": "./img/cosmeticanatural.jpg"
+    }
+]

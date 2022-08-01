@@ -1,178 +1,117 @@
-const carritoLista = [];
-let productos = localStorage.getItem("productos");
-let carrito = document.getElementById("carrito");
-carrito.innerText = productos;
-
-let botonFitMeBlush = document.getElementById("comprar_fitmeblush");
-botonFitMeBlush.addEventListener("click", agregarFitMeBlush);
-
-let botonDreamBouncy = document.getElementById("comprar_bouncy");
-botonDreamBouncy.addEventListener("click", agregarDreamBouncy);
-
-let botonColorSensationalLipliner = document.getElementById("comprar_lipliner");
-botonColorSensationalLipliner.addEventListener(
-  "click",
-  agregarColorSensationalLipliner
-);
-
-let botonLimpiarCarrito = document.getElementById("limpiar_carrito");
-botonLimpiarCarrito.addEventListener("click", limpiarCarrito);
-
-fetch("http://makeup-api.herokuapp.com/api/v1/products.json?brand=maybelline")
-  .then((response) => response.json())
-  .then((todosLosProductos) => {
-    const productosDisponibles = [];
-    for (i = 0; i < 10; i++) {
-      productosDisponibles.push(todosLosProductos[i]);
+let products = [];
+const savedProducts = JSON.parse(localStorage.getItem("products"));
+if (savedProducts) {
+  console.log("ya habia");
+  products = savedProducts;
+  createProducts(savedProducts);
+  savedProducts.forEach((prod) => {
+    if (prod.amount > 0) {
+      renderSelectedProductHTML(prod);
     }
-    const nombreDeProductosSeleccionados = productosDisponibles.map(
-      (producto) => {
-        return `\n${producto.name}`;
-      }
-    );
-    const productosAMostrar = document.getElementById(
-      "productos_seleccionados"
-    );
-    productosAMostrar.innerText = nombreDeProductosSeleccionados;
   });
+} else {
+  console.log("no habia");
+  fetch("/productos.json")
+    .then((response) => response.json())
+    .then((productList) => {
+      products = productList;
+      createProducts(products);
+    });
+}
 
-function agregarFitMeBlush() {
-  let carrito = document.getElementById("carrito");
-  carritoLista.push("Fit Me Blush");
-  carrito.innerText = carrito.innerText + `Fit Me Blush\n`;
-  guardarCarritoEnLocalStorage();
+function createProducts(productList) {
+  renderProducts(productList);
+  assignAddProductButtonClickListener();
+  assignClearShoppingCartClickListener();
+}
+
+function assignClearShoppingCartClickListener() {
+  const div = document.getElementById("button_shopping_cart_clear");
+  div.addEventListener("click", () => {
+    products.forEach((prod) => (prod.amount = 0));
+    document.getElementById("shopping_cart_products").innerHTML = "";
+    // saveProductsLocalStorage(products);
+    localStorage.clear();
+    showToast("Has eliminado todos los productos del carrito");
+  });
+}
+
+function renderProducts(productList) {
+  productList.forEach((product) => {
+    document.getElementById("products_container").innerHTML +=
+      createProductHTML(product);
+  });
+}
+
+function assignAddProductButtonClickListener() {
+  products.forEach((product) => {
+    const button = document.getElementById(`button_${product.id}_add`);
+    button.addEventListener("click", (e) => {
+      addProductToShoppingCart(product);
+      showToast(`${product.name} agregado al carrito`);
+      saveProductsLocalStorage(products);
+    });
+  });
+}
+
+function saveProductsLocalStorage(productList) {
+  localStorage.setItem("products", JSON.stringify(productList));
+}
+
+function addProductToShoppingCart(product) {
+  if (!product.amount || product.amount === 0) {
+    product.amount = 1;
+    renderSelectedProductHTML(product);
+  } else {
+    product.amount++;
+    reRenderSelectedProductAmount(product);
+  }
+}
+
+function renderSelectedProductHTML(product) {
+  const shoppingCartProducts = document.getElementById(
+    "shopping_cart_products"
+  );
+  shoppingCartProducts.innerHTML += createSelectedProductHTML(product);
+}
+
+function reRenderSelectedProductAmount(product, div) {
+  const shoppingCartProducts = document.getElementById(
+    "shopping_cart_products"
+  );
+  document.getElementById(`product_${product.id}`).remove();
+  shoppingCartProducts.innerHTML += createSelectedProductHTML(product);
+}
+
+function createProductHTML(element) {
+  return `
+    <div class="card col-md-4">
+      <div class="card-body">
+        <img class="card-img-top" src="${element.image}" >
+        <h4 class="card-title"> ${element.name} </h4>
+        <p> Precio: ${element.price} </p>
+        <button id="button_${element.id}_add" class="btn btn-primary card-button"> Agregar ${element.name} </button>
+      </div>
+    </div>
+  `;
+}
+
+function createSelectedProductHTML(element) {
+  return `
+    <div id="product_${element.id}" class="card col-md-4">
+      <div class="card-body">
+        <img class="card-img-top" src="${element.image}" >
+        <h4 class="card-title"> ${element.name} </h4>
+        <p> Precio: ${element.price} </p>
+        <p> Cantidad: ${element.amount} </p>
+      </div>
+    </div>
+  `;
+}
+
+function showToast(text) {
   Toastify({
-    text: "Has agregado un Fit Me Blush!",
+    text: text,
     duration: 3000,
   }).showToast();
 }
-
-function agregarDreamBouncy() {
-  let carrito = document.getElementById("carrito");
-  carritoLista.push("Dream Bouncy");
-  carrito.innerText = carrito.innerText + `Dream Bouncy\n`;
-  guardarCarritoEnLocalStorage();
-  Toastify({
-    text: "Has agregado un Dream Bouncy!",
-    duration: 3000,
-  }).showToast();
-}
-
-function agregarColorSensationalLipliner() {
-  let carrito = document.getElementById("carrito");
-  carritoLista.push("Color Sensational Lipliner");
-  carrito.innerText = carrito.innerText + `Color Sensational Lipliner\n`;
-  guardarCarritoEnLocalStorage();
-  Toastify({
-    text: "Has agregado un Color Sensational Lipliner!",
-    duration: 3000,
-  }).showToast();
-}
-
-function guardarCarritoEnLocalStorage() {
-  let carrito = document.getElementById("carrito");
-  let productos = carrito.innerText;
-  localStorage.setItem("productos", productos);
-}
-
-function limpiarCarrito() {
-  let carrito = document.getElementById("carrito");
-  carrito.innerText = "";
-  guardarCarritoEnLocalStorage();
-  Toastify({
-    text: "Has limpiado tu carrito!",
-    duration: 3000,
-  }).showToast();
-}
-
-// let cepilloDental = {
-//   precio: 300,
-//   nombre: "Cepillo de dientes",
-// };
-
-// let shampooSolido = {
-//   precio: 700,
-//   nombre: "Shampoo sólido",
-// };
-
-// let acondicionadorSolido = {
-//   precio: 800,
-//   nombre: "Acondicionador sólido",
-// };
-
-// let listaProductos = [cepilloDental, shampooSolido, acondicionadorSolido];
-
-// let botonIniciador = document.getElementById("boton_empezar_programa");
-// botonIniciador.addEventListener("click", programa);
-
-// function programa() {
-//   let productoIngresado = prompt(
-//     "Elige: Cepillo de dientes, Shampoo sólido o Acondicionador sólido"
-//   );
-
-//   let productoElegidoLista = listaProductos.filter((producto) => {
-//     return producto.nombre.toLowerCase() === productoIngresado.toLowerCase();
-//   });
-
-//   if (productoElegidoLista.length === 0) {
-//     alert("Producto ingresado no corresponde con ninguno en la lista.");
-//   } else {
-//     let productoElegido = productoElegidoLista[0];
-//     alert(
-//       `Producto ${productoElegido.nombre}, valor ${productoElegido.precio}`
-//     );
-
-//     let precio = productoElegido.precio;
-//     let cantidad = prompt("Ingrese la cantidad del producto deseado: ");
-//     let cuotas = Number(
-//       prompt("Ingrese las cuotas deseadas (3 sin interés): ")
-//     );
-//     let interes = 0.2;
-
-//     if (cuotas === 3) {
-//       interes = 0;
-//     }
-
-//     let cuotaBase = generarCuotaBase(precio, cantidad, cuotas);
-//     let valorInteres = generarValorInteres(cuotaBase, interes);
-//     let valorCuotaTotal = generarValorCuotaTotal(cuotaBase, valorInteres);
-//     let valorCompraTotal = generarValorCompraTotal(valorCuotaTotal, cuotas);
-
-//     alert("El valor total de la compra: $" + valorCompraTotal);
-
-//     let valorPagadoHastaElMomento = 0;
-//     for (i = 1; i <= cuotas; i++) {
-//       valorPagadoHastaElMomento = valorPagadoHastaElMomento + valorCuotaTotal;
-//       if (i === 1) {
-//         alert("¡Empezaste a pagar las cuotas!");
-//       }
-//       alert(
-//         "El valor de la cuota " +
-//           i +
-//           " es $" +
-//           valorCuotaTotal +
-//           " y hasta ahora llevas pagando $" +
-//           valorPagadoHastaElMomento
-//       );
-//       if (i === cuotas) {
-//         alert("¡Ya pagaste todas las cuotas! ");
-//       }
-//     }
-//   }
-// }
-
-// function generarCuotaBase(precio, cantidad, cuotas) {
-//   return (precio * cantidad) / cuotas;
-// }
-
-// function generarValorInteres(cuotaBase, interes) {
-//   return cuotaBase * interes;
-// }
-
-// function generarValorCuotaTotal(cuotaBase, valorInteres) {
-//   return cuotaBase + valorInteres;
-// }
-
-// function generarValorCompraTotal(valorCuotaTotal, cuotas) {
-//   return valorCuotaTotal * cuotas;
-// }
